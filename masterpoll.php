@@ -2,6 +2,7 @@
 
 define('BOT_TOKEN','364944422:AAGd1iM_wwBqDEg119yUgtN-83y9zrVxJJU');
 define('APP_URL','https://bruzzumasterbot.herokuapp.com/masterpoll.php');
+define('API_URL', 'https://api.telegram.org/bot'.BOT_TOKEN.'/');
 
 include('API.php');
 include('class.php');
