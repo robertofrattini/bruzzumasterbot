@@ -45,7 +45,7 @@ class API
 
   # First level methods
   public function getWebhookInfo() {
-    $webhookInfo = $this->request('getWebhookInfo');
+    $webhookInfo = $this->sendRequest('getWebhookInfo');
     if ($webhookInfo['url']) {
       $this->webhookStatus = true;
       return true;
@@ -70,7 +70,7 @@ class API
         'limit' => $limit,
         #'allowed_updates' => $allowed_updates,#è un array vuoto
         );
-      $result = $this->request('getUpdates',$params);
+      $result = $this->sendRequest('getUpdates',$params);
       if($result['ok']) {
         return $result['result']; #non è un oggetto
       }
