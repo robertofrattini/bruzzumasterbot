@@ -3,12 +3,14 @@
 define('BOT_TOKEN','364944422:AAGd1iM_wwBqDEg119yUgtN-83y9zrVxJJU');
 define('APP_URL','https://bruzzumasterbot.herokuapp.com/masterpoll.php');
 
+include('API.php');
+
 /**
  *
  */
 class API
 {
-  private $url; #salva l'indirizzo per inviare le richieste
+  private $url; #salva l'indirizzo per inviare le richieste all'api
   public $webhookStatus = false; #logico, vero se è presente un collegamento webhook
   public $pendingUpdateCount; #in longpolling, rappresenta il numero di update non ancora processati rimasti sul server
 
@@ -19,7 +21,7 @@ class API
   }
 
   # Endpoint methods
-  public function sendRequest($method, array $params = array()) {
+  public function sendRequest(string $method, array $params = array()) {
     $params['method'] = $method;
     $handle = curl_init();
       curl_setopt($handle, CURLOPT_URL, $this->url);
@@ -80,4 +82,4 @@ class API
 
 $api = new API(BOT_TOKEN);
 $update = $api->getUpdates();
-$api->sendRequest('sendMessage',['text'=>print_r($api->getWebhookInfo()),'chat_id'=>$update['message']['chat']['id']]);
+$api->sendRequest('sendMessage',['text'=>"ok",'chat_id'=>$update['message']['chat']['id']]);
