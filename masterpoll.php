@@ -1,74 +1,83 @@
-<?=
+<?php
 
 define('BOT_TOKEN','364944422:AAGd1iM_wwBqDEg119yUgtN-83y9zrVxJJU');
-define('APP_URL','https://bruzzumasterbot.herokuapp.com/bruzzumasterbot.php');
+define('APP_URL','https://bruzzumasterbot.herokuapp.com/masterpoll.php');
 
-include('Classes.php');
+/**
+ *
+ */
+class API
+{
+  private $url; #salva l'indirizzo per inviare le richieste
+  public $webhookStatus = false; #logico, vero se è presente un collegamento webhook
+  public $pendingUpdateCount; #in longpolling, rappresenta il numero di update non ancora processati rimasti sul server
 
-$api = new API(BOT_TOKEN);
-$upd = $api->getUpdates();
-
-$msg = new Message($upd);
-//$usr = new User($msg);//l'userId deve rimanere sempre lo stesso all'interno del longpolling, a meno che non sia necessario l'input anche da parte di altri utenti. Considera l'opzione di impostare i comandi anche in modalità webhook se per caso qualche utente vuole usufruire di un pannello di controllo già aperto da qualche altro utente
-$cht = new Chat($msg);//chatId deve rimanere sempre lo stesso nel runtime dell'applicazione (anche nel loop), può cambiare solo quando il webhook è attivo
-
-$lastUpdate = $upd['update_id'];
-$api->request('sendMessage',['text'=>"Ok let's start! send me 'poll'"]);
-
-if($msg['text']==="poll"){
-  $res = $api->deleteWebhook();
-  if ($res) {
-    $api->request('sendMessage',['text'=>"webhook deleted"]);
+  function __construct($token)
+  {
+    $this->url = 'https://api.telegram.org/bot'.BOT_TOKEN.'/'; #crea l'url, che può essere utilizzata solo all'interno di questa classe
+    $this->getWebhookInfo(); #assegna un valore allo stato del webhook (alla prima istanza dovrebbe fornire true)
   }
-	$api->request('sendMessage',['text'=>"Longpolling initialising"]);
-  while(true) {
-    $offset = $lastUpdate+1;
-    $newUpdates = $api->getUpdates($offset);
-    foreach ($newUpdates as $update) {
-      $msgText = $update['message']['text'];
-      if($msgText==="stop") {break 2;}
-      else {
-        if ($lastUpdate<$update['update_id']){
-          $lastUpdate = $update['update_id'];
-          $api->request('sendMessage',['text'=>"$msgText"]);
-        }
+
+  # Endpoint methods
+  public function sendRequest($method, array $params = array()) {
+    $params['method'] = $method;
+    $handle = curl_init();
+      curl_setopt($handle, CURLOPT_URL, $this->url);
+      curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);
+      curl_setopt($handle, CURLOPT_POSTFIELDS, json_encode($params));
+      curl_setopt($handle, CURLOPT_HTTPHEADER, array("Content-Type: application/json"));
+    $result = json_decode(curl_exec($handle),true);
+    curl_close($handle);
+    return $result;
+  }
+
+  public function uploadFile($method, array $params = array()) {
+    $params['method'] = $method;
+    $handle = curl_init();
+      curl_setopt($handle, CURLOPT_URL, $this->url);
+      curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);
+      curl_setopt($handle, CURLOPT_POSTFIELDS, json_encode($params));
+      curl_setopt($handle, CURLOPT_HTTPHEADER, array("Content-Type: multipart/form-data"));
+    $result = json_decode(curl_exec($handle),true);
+    curl_close($handle);
+    return $result;
+  }
+
+  # First level methods
+  public function getWebhookInfo() {
+    $webhookInfo = $this->request('getWebhookInfo');
+    if ($webhookInfo['url']) {
+      $this->webhookStatus = true;
+      return true;
+    }
+    else {
+      $this->webhookStatus = false;
+      $this->pendingUpdateCount = $webhookInfo['pending_update_count'];
+      return false;
+    }
+  }
+
+  public function getUpdates($offset = 0, $timeout = 30, $limit = 50, array $allowed_updates = array()) {
+    if ($this->webhookStatus === true) {
+      $update = json_decode(file_get_contents('php://input'),true);#non è il risultato della funzione
+      $this->chatId = $update['message']['chat']['id'];#ok ma non va in questa classe
+      $this->userId = $update['message']['from']['id'];#ok ma non va in questa classe
+      return $update;#aggiunta, altrimenti non spara fuori niente questa funzione
+    } else {
+      $params = array(
+        'offset' => $offset,
+        'timeout' => $timeout,
+        'limit' => $limit,
+        #'allowed_updates' => $allowed_updates,#è un array vuoto
+        );
+      $result = $this->request('getUpdates',$params);
+      if($result['ok']) {
+        return $result['result']; #non è un oggetto
       }
     }
-    sleep(2);
-	}
+  }
 }
 
-$api->setWebhook();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-?>
+$api = new API(BOT_TOKEN);
+$update = $api->getUpdates();
+$api->sendRequest('sendMessage',['text'=>print_r($api->getWebhookInfo()),'chat_id'=>$update['message']['chat']['id']]);
