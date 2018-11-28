@@ -83,3 +83,4 @@ class API
 $api = new API(BOT_TOKEN);
 $update = $api->getUpdates();
 $api->sendRequest('sendMessage',['text'=>"ok",'chat_id'=>$update['message']['chat']['id']]);
+apiRequestJson('sendMessage',['text'=>"ok",'chat_id'=>$update['message']['chat']['id']]);
