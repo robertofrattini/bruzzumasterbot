@@ -1,3 +1,3 @@
 <?php
-echo "bruzzumasterbot v2.0"
+echo "bruzzumasterbot v2.0";
  ?>
