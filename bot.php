@@ -57,14 +57,13 @@ function apiRequestJson($method, $parameters) {
 # getting updates from server
 $update = json_decode(file_get_contents('php://input'), true);
 $chatId = $update['message']['chat']['id'];
-apiRequestJson('sendMessage',['chat_id' => $chatId,'text' => "60"]);
 
 // main loop
 if ($update['message']['text']==="poll") {
   apiRequestJson('sendMessage',['chat_id' => $chatId,'text' => "64"]);
   #webhook removal
   $res = apiRequestJson('deleteWebhook',[]);
-  if ($res) {
+  if ($res['result']===true) {
     apiRequestJson('sendMessage',['chat_id' => $chatId,'text' => "webhook deleted"]);
   }
   #aggiorna il contatore
@@ -75,6 +74,11 @@ if ($update['message']['text']==="poll") {
   while (true) {
     $offset = $lastUpdate+1;
     $result = apiRequestJson('getUpdates',['offset' => $lastUpdate+1]);
+    if (is_array($result['result'])) {
+      apiRequestJson('sendMessage',['chat_id' => $chatId,'text' => "result is array"]);
+    } else {
+      apiRequestJson('sendMessage',['chat_id' => $chatId,'text' => "result is not an array"]);
+    }
     foreach ($result["result"] as $update) {
       if ($update['message']['chat']['id']===$chatId) {
         apiRequestJson('sendMessage',['chat_id' => $chatId,'text' => "update_id = ".$update['update_id']."\ntext = ".$update['message']['text']]);
@@ -96,7 +100,7 @@ if ($update['message']['text']==="poll") {
   apiRequestJson('sendMessage',['chat_id' => $chatId,'text' => "longpoll terminated"]);
   #webhook restoring
   $res = apiRequestJson('setWebhook',['url'=>APP_URL]);
-  if ($res) {
+  if ($res['result']===true) {
     apiRequestJson('sendMessage',['chat_id' => $chatId,'text' => "webhook was deleted"]);
   }
 }
