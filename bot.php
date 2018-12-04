@@ -1,6 +1,7 @@
 <?php
 
 define('API_URL', 'https://api.telegram.org/bot364944422:AAGd1iM_wwBqDEg119yUgtN-83y9zrVxJJU/');
+define('APP_URL', 'https://bruzzumasterbot.herokuapp.com/bot.php');
 function exec_curl_request($handle) {
     $response = curl_exec($handle);
     if ($response === false) {
@@ -60,28 +61,44 @@ $chatId = $update['message']['chat']['id'];
 apiRequestJson('sendMessage',['chat_id' => $chatId,'text' => "chat_id = ".$chatId]);
 
 # metodo base
-$last_update = $update['update_id'];
-set_time_limit(60);
+
 // main loop
-while (true) {
-  $offset = $lastUpdate+1;
-  $result = apiRequestJson('getUpdates',['offset' => $lastUpdate+1]);
-  foreach ($result["result"] as $updateNo => $update) {
-    if ($update['message']['chat']['id']===$chatId) {
-      apiRequestJson('sendMessage',['chat_id' => $chatId,'text' => "update_id = ".$update['update_id']]);
-      if ($update['message']['text']==="stop") {
-        apiRequestJson('sendMessage',['chat_id' => $chatId,'text' => "ok!"]);
-        break 2;
-      } else {
-        if ($lastUpdate<$update['update_id']){
-          $lastUpdate = $update['update_id'];
-          $api->request('sendMessage',['text'=>"$msgText"]);
-          apiRequestJson('sendMessage',['chat_id' => $chatId,'text' => "Say stop"]);
-        }
-      }
-    } else {
-      apiRequestJson('sendMessage',['chat_id' => $chatId,'text' => "chat_id = ".$chatId]);
-    }
+if ($update['message']['tex']==="poll") {
+  #webhook removal
+  $res = apiRequestJson('deleteWebhook');
+  if ($res) {
+    apiRequestJson('sendMessage',['chat_id' => $chatId,'text' => "webhook deleted"]);
   }
-	sleep(3);
+  #aggiorna il contatore
+  $lastUpdate = $update['update_id'];
+  set_time_limit(60);
+  #execute longpoll
+  apiRequestJson('sendMessage',['chat_id' => $chatId,'text' => "longpoll initializing..."]);
+  while (true) {
+    $offset = $lastUpdate+1;
+    $result = apiRequestJson('getUpdates',['offset' => $lastUpdate+1]);
+    foreach ($result["result"] as $updateNo => $update) {
+      if ($update['message']['chat']['id']===$chatId) {
+        apiRequestJson('sendMessage',['chat_id' => $chatId,'text' => "update_id = ".$update['update_id']."\ntext = ".$update['message']['text']]);
+        if ($update['message']['text']==="stop") {
+          apiRequestJson('sendMessage',['chat_id' => $chatId,'text' => "terminating longpoll..."]);
+          break 2;
+        } else {
+          if ($lastUpdate<$update['update_id']){
+            $lastUpdate = $update['update_id'];
+            apiRequestJson('sendMessage',['chat_id' => $chatId,'text' => "continuing..."]);
+          }
+        }
+      } else {
+        apiRequestJson('sendMessage',['chat_id' => $chatId,'text' => "chat_id = ".$chatId]);
+      }
+    }
+  	sleep(3);
+  }
+  apiRequestJson('sendMessage',['chat_id' => $chatId,'text' => "longpoll terminated"]);
+  #webhook restoring
+  $res = apiRequestJson('setWebhook',['url'=>APP_URL]);
+  if ($res) {
+    apiRequestJson('sendMessage',['chat_id' => $chatId,'text' => "webhook was deleted"]);
+  }
 }
