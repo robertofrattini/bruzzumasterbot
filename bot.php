@@ -74,10 +74,10 @@ if ($update['message']['text']==="poll") {
   while (true) {
     $offset = $lastUpdate+1;
     $result = apiRequestJson('getUpdates',['offset' => $lastUpdate+1]);
-    if (is_object($result['result'])) {
-      apiRequestJson('sendMessage',['chat_id' => $chatId,'text' => "result is an object"]);
+    if (($result['result'])) {
+      apiRequestJson('sendMessage',['chat_id' => $chatId,'text' => "exists"]);
     } else {
-      apiRequestJson('sendMessage',['chat_id' => $chatId,'text' => "result is not an object"]);
+      apiRequestJson('sendMessage',['chat_id' => $chatId,'text' => "nothing found"]);
     }
     foreach ($result["result"] as $update) {
       if ($update['message']['chat']['id']===$chatId) {
