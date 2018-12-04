@@ -57,13 +57,11 @@ function apiRequestJson($method, $parameters) {
 # getting updates from server
 $update = json_decode(file_get_contents('php://input'), true);
 $chatId = $update['message']['chat']['id'];
-
-apiRequestJson('sendMessage',['chat_id' => $chatId,'text' => "chat_id = ".$chatId]);
-
-# metodo base
+apiRequestJson('sendMessage',['chat_id' => $chatId,'text' => "60"]);
 
 // main loop
 if ($update['message']['tex']==="poll") {
+  apiRequestJson('sendMessage',['chat_id' => $chatId,'text' => "64"]);
   #webhook removal
   $res = apiRequestJson('deleteWebhook');
   if ($res) {
