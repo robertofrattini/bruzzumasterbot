@@ -1,11 +1,6 @@
 <?php
+
 define('API_URL', 'https://api.telegram.org/bot364944422:AAGd1iM_wwBqDEg119yUgtN-83y9zrVxJJU/');
-$update = json_decode(file_get_contents('php://input'), true);
-$chatId = $update['message']['chat']['id'];
-$params = [
-  'chat_id' => $chatId,
-  'text' => "Ciao",
-];
 function exec_curl_request($handle) {
     $response = curl_exec($handle);
     if ($response === false) {
@@ -57,4 +52,36 @@ function apiRequestJson($method, $parameters) {
       curl_setopt($handle, CURLOPT_HTTPHEADER, array("Content-Type: application/json"));
     return exec_curl_request($handle);
   }
-apiRequestJson('sendMessage',$params);
+
+# getting updates from server
+$update = json_decode(file_get_contents('php://input'), true);
+$chatId = $update['message']['chat']['id'];
+
+apiRequestJson('sendMessage',['chat_id' => $chatId,'text' => "chat_id = ".$chatId]);
+
+# metodo base
+$last_update = $update['update_id'];
+set_time_limit(60);
+// main loop
+while (true) {
+  $offset = $lastUpdate+1;
+  $result = apiRequestJson('getUpdates',['offset' => $lastUpdate+1]);
+  foreach ($result["result"] as $updateNo => $update) {
+    if ($update['message']['chat']['id']===$chatId) {
+      apiRequestJson('sendMessage',['chat_id' => $chatId,'text' => "update_id = ".$update['update_id']]);
+      if ($update['message']['text']==="stop") {
+        apiRequestJson('sendMessage',['chat_id' => $chatId,'text' => "ok!"]);
+        break 2;
+      } else {
+        if ($lastUpdate<$update['update_id']){
+          $lastUpdate = $update['update_id'];
+          $api->request('sendMessage',['text'=>"$msgText"]);
+          apiRequestJson('sendMessage',['chat_id' => $chatId,'text' => "Say stop"]);
+        }
+      }
+    } else {
+      apiRequestJson('sendMessage',['chat_id' => $chatId,'text' => "chat_id = ".$chatId]);
+    }
+  }
+	sleep(3);
+}
