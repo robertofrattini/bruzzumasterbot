@@ -60,7 +60,7 @@ $chatId = $update['message']['chat']['id'];
 apiRequestJson('sendMessage',['chat_id' => $chatId,'text' => "60"]);
 
 // main loop
-if ($update['message']['tex']==="poll") {
+if ($update['message']['text']==="poll") {
   apiRequestJson('sendMessage',['chat_id' => $chatId,'text' => "64"]);
   #webhook removal
   $res = apiRequestJson('deleteWebhook');
