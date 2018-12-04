@@ -75,7 +75,7 @@ if ($update['message']['text']==="poll") {
   while (true) {
     $offset = $lastUpdate+1;
     $result = apiRequestJson('getUpdates',['offset' => $lastUpdate+1]);
-    foreach ($result["result"] as $updateNo => $update) {
+    foreach ($result["result"] as $update) {
       if ($update['message']['chat']['id']===$chatId) {
         apiRequestJson('sendMessage',['chat_id' => $chatId,'text' => "update_id = ".$update['update_id']."\ntext = ".$update['message']['text']]);
         if ($update['message']['text']==="stop") {
