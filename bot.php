@@ -101,6 +101,6 @@ if ($update['message']['text']==="poll") {
   #webhook restoring
   $res = apiRequestJson('setWebhook',['url'=>APP_URL]);
   if ($res['result']===true) {
-    apiRequestJson('sendMessage',['chat_id' => $chatId,'text' => "webhook was deleted"]);
+    apiRequestJson('sendMessage',['chat_id' => $chatId,'text' => "webhook was set"]);
   }
 }
